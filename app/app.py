@@ -86,7 +86,7 @@ def _generate_random_filename():
         )
 
 
-def _resize_image(path, width, height):
+def _resize_image_crop(path, width, height):
     filename_without_extension, extension = os.path.splitext(path)
 
     with Image(filename=path) as src:
@@ -189,6 +189,7 @@ def upload_image():
 def get_image(filename):
     width = request.args.get("w", "")
     height = request.args.get("h", "")
+    fit = request.args.get("fit", "")
 
     path = os.path.join(settings.IMAGES_DIR, filename)
 
@@ -208,14 +209,16 @@ def get_image(filename):
 
         resized_path = os.path.join(settings.CACHE_DIR, resized_filename)
 
-        if not os.path.isfile(resized_path) and (width or height):
+        if not os.path.isfile(resized_path) and (width or height) and fit == "crop":
             _clear_imagemagick_temp_files()
-            resized_image = _resize_image(path, width, height)
+            resized_image = _resize_image_crop(path, width, height)
             resized_image.strip()
             resized_image.save(filename=resized_path)
             resized_image.close()
 
-        return send_from_directory(settings.CACHE_DIR, resized_filename)
+            return send_from_directory(settings.CACHE_DIR, resized_filename)
+        else:
+            return send_from_directory(settings.IMAGES_DIR, filename)
 
     return send_from_directory(settings.IMAGES_DIR, filename)
 
