@@ -123,6 +123,28 @@ def _resize_image_crop(path, width, height):
 
         return img
 
+def _resize_image_clip(path, width, height):
+    filename_without_extension, extension = os.path.splitext(path)
+
+    with Image(filename=path) as src:
+        img = src.clone()
+        current_aspect_ratio = img.width / img.height
+
+        if not width:
+            width = int(current_aspect_ratio * height)
+
+        if not height:
+            height = int(width / current_aspect_ratio)
+
+        # Clip the image to fit the existing AR
+        if height > int(width / current_aspect_ratio):
+                height = int(width / current_aspect_ratio) 
+        width = int(height * current_aspect_ratio)
+                
+        img.resize(width, height)
+
+        return img
+
 
 @app.route("/", methods=["GET"])
 def root():
@@ -209,7 +231,8 @@ def get_image(filename):
 
         resized_path = os.path.join(settings.CACHE_DIR, resized_filename)
 
-        if not os.path.isfile(resized_path) and (width or height) and fit == "crop":
+        #if not os.path.isfile(resized_path) and (width or height) and fit == "crop":
+        if (width or height) and fit == "crop":
             _clear_imagemagick_temp_files()
             resized_image = _resize_image_crop(path, width, height)
             resized_image.strip()
@@ -218,7 +241,16 @@ def get_image(filename):
 
             return send_from_directory(settings.CACHE_DIR, resized_filename)
         else:
-            return send_from_directory(settings.IMAGES_DIR, filename)
+            if (width or height) and fit == "clip":
+                _clear_imagemagick_temp_files()
+                resized_image = _resize_image_clip(path, width, height)
+                resized_image.strip()
+                resized_image.save(filename=resized_path)
+                resized_image.close()
+
+                return send_from_directory(settings.CACHE_DIR, resized_filename)
+            else:
+                return send_from_directory(settings.IMAGES_DIR, filename)
 
     return send_from_directory(settings.IMAGES_DIR, filename)
 
