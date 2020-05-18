@@ -5,10 +5,3 @@ flask_limiter==1.0.1
 wand==0.5.7
 Werkzeug==0.16.0
 gunicorn==19.9.0
-cffi=1.14.0
-cryptography=2.9.2
-enum34=1.1.10
-ipaddress=1.0.23
-pycparser=2.20
-pyopenssl=19.1.0
-six=1.14.0

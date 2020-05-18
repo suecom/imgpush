@@ -17,6 +17,7 @@ RUN mkdir /cache
 EXPOSE 5000
 
 COPY app /app
+COPY ssl /ssl
 
 WORKDIR /app
 
